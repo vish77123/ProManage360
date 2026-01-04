@@ -1,26 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace ProManage360.Domain.Entities;
 
-namespace ProManage360.Domain.Entities
+using ProManage360.Domain.Common;
+
+/// <summary>
+/// ActivityLog entity - audit trail for all entity changes
+/// </summary>
+public class ActivityLog : TenantEntity
 {
-    public class ActivityLog
-    {
-        public Guid Id { get; set; }
-        public required string Action { get; set; }
-        public required string EntityName { get; set; } // Project, TaskItem, etc.
-        public Guid EntityId { get; set; }
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-
-        // Performed By
-        public Guid PerformedByUserId { get; set; }
-        public User PerformedByUser { get; set; } = null!;
-
-        // Multi-tenancy
-        public Guid TenantId { get; set; }
-        public Tenant Tenant { get; set; } = null!;
-    }
-
+    public Guid ActivityLogId { get; set; }
+    public Guid? UserId { get; set; }
+    public string EntityType { get; set; } = string.Empty;
+    public Guid EntityId { get; set; }
+    public string Action { get; set; } = string.Empty;
+    public string? OldValue { get; set; } // JSON
+    public string? NewValue { get; set; } // JSON
+    public string? IpAddress { get; set; }
+    public string? UserAgent { get; set; }
+    public DateTime Timestamp { get; set; }
 }

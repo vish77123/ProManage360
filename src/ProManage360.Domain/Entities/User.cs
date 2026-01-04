@@ -1,30 +1,23 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace ProManage360.Domain.Entities;
 
-namespace ProManage360.Domain.Entities
+using ProManage360.Domain.Common;
+
+/// <summary>
+/// User entity - represents a user account
+/// </summary>
+public class User : SoftDeletableTenantEntity
 {
-    public class User
-    {
-        public Guid Id { get; set; }
-        public required string FullName { get; set; }
-        public required string Email { get; set; }
-        public required string PasswordHash { get; set; }
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public Guid UserId { get; set; }
+    public string Email { get; set; } = string.Empty;
+    public string PasswordHash { get; set; } = string.Empty;
+    public string FirstName { get; set; } = string.Empty;
+    public string LastName { get; set; } = string.Empty;
+    public string? ProfilePictureUrl { get; set; }
+    public bool IsActive { get; set; }
+    public bool EmailConfirmed { get; set; }
+    public string? PhoneNumber { get; set; }
+    public DateTime? LastLoginAt { get; set; }
 
-        // Multi-tenancy
-        public Guid TenantId { get; set; }
-        public Tenant Tenant { get; set; } = null!;
-
-        // Navigation
-        public ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
-        public ICollection<Project> OwnedProjects { get; set; } = new List<Project>();
-        public ICollection<TaskItem> AssignedTasks { get; set; } = new List<TaskItem>();
-        public ICollection<Notification> Notifications { get; set; } = new List<Notification>();
-        public ICollection<ActivityLog> ActivityLogs { get; set; } = new List<ActivityLog>();
-    }
-
-
+    // Computed property
+    public string FullName => $"{FirstName} {LastName}";
 }

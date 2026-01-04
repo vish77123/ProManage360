@@ -1,24 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace ProManage360.Domain.Entities;
 
-namespace ProManage360.Domain.Entities
+using ProManage360.Domain.Common;
+
+/// <summary>
+/// Role entity - represents a user role within a tenant
+/// </summary>
+public class Role : TenantEntity
 {
-    public class Role
-    {
-        public Guid Id { get; set; }
-        public required string Name { get; set; } // Admin, Manager, Member
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-
-        // Multi-tenancy
-        public Guid TenantId { get; set; }
-        public Tenant Tenant { get; set; } = null!;
-
-        // Navigation
-        public ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
-    }
-
-
+    public Guid RoleId { get; set; }
+    public string RoleName { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public bool IsSystemRole { get; set; }
 }
