@@ -1,21 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace ProManage360.Domain.Entities;
 
-namespace ProManage360.Domain.Entities
+using ProManage360.Domain.Common;
+
+/// <summary>
+/// UserRole entity - many-to-many relationship between users and roles
+/// </summary>
+public class UserRole : BaseEntity
 {
-    public class UserRole
-    {
-        public Guid UserId { get; set; }
-        public User User { get; set; } = null!;
-
-        public Guid RoleId { get; set; }
-        public Role Role { get; set; } = null!;
-
-        public Guid TenantId { get; set; }
-        public Tenant Tenant { get; set; } = null!;
-    }
-
+    public Guid UserRoleId { get; set; }
+    public Guid UserId { get; set; }
+    public Guid RoleId { get; set; }
+    public DateTime AssignedAt { get; set; }
+    public Guid? AssignedBy { get; set; }
 }

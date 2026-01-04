@@ -2,14 +2,12 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ProManage360.Application\ProManage360.Application.csproj" />
+    <ProjectReference Include="..\ProManage360.Persistence\ProManage360.Persistence.csproj" />
     <ProjectReference Include="..\ProManage360.Shared\ProManage360.Shared.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Services\" />
-  </ItemGroup>
-
-  <ItemGroup>
+    <PackageReference Include="MediatR" Version="13.1.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.9" />
   </ItemGroup>
 
