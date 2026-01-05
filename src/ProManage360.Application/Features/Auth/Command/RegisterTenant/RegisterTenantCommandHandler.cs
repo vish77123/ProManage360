@@ -240,7 +240,7 @@ namespace ProManage360.Application.Features.Auth.Command.RegisterTenant
             // STEP 9: Store Refresh Token
             // ========================================
 
-            var refreshTokenEntity = new RefreshToken
+            var refreshTokenEntity = new Domain.Entities.RefreshToken
             {
                 RefreshTokenId = Guid.NewGuid(),
                 UserId = user.UserId,
