@@ -35,7 +35,7 @@ namespace ProManage360.Application.Features.Auth.Command.RegisterTenant
         public async Task<RegisterTenantResponse> Handle(RegisterTenantCommand request, CancellationToken cancellationToken)
         {
             // Step 1 : Create Tenant.
-            var tenant = new Tenant
+            var tenant = new Domain.Entities.Tenant
             {
                 TenantId = Guid.NewGuid(),
                 TenantName = request.TenantName,
