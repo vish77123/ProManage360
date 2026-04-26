@@ -3,13 +3,14 @@ using Microsoft.EntityFrameworkCore;
 using ProManage360.Application.Common.Exceptions;
 using ProManage360.Application.Common.Interfaces;
 using ProManage360.Application.Common.Interfaces.Service;
+using ProManage360.Application.Common.Models;
 using ProManage360.Application.Features.Auth.DTOs;
 using ProManage360.Domain.Entities;
 using System.ComponentModel;
 
 namespace ProManage360.Application.Features.Auth.Command.Login
 {
-    public class LoginCommandHandler : IRequestHandler<LoginCommand, LoginResponse>
+    public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<LoginResponse>>
     {
         private readonly IApplicationDbContext _context;
         private readonly IPasswordHasher _passwordHasher;
@@ -23,7 +24,7 @@ namespace ProManage360.Application.Features.Auth.Command.Login
             _dateTime = dateTime;
         }
 
-        public async Task<LoginResponse> Handle(LoginCommand request, CancellationToken cancellationToken)
+        public async Task<Result<LoginResponse>> Handle(LoginCommand request, CancellationToken cancellationToken)
         {
             // ========================================
             // STEP 1: Find User by Email
@@ -35,16 +36,16 @@ namespace ProManage360.Application.Features.Auth.Command.Login
 
             if (user == null)
             {
-                throw new UnauthorizedAccessException("Invalid Email or Password.");
+                return Result<LoginResponse>.Failure("Invalid Email or Password.");
             }
 
             // ========================================
             // STEP 2: Verify Password
             // ========================================
             var isValidPassword = _passwordHasher.VerifyPassword(request.Password, user.PasswordHash);
-            if (isValidPassword)
+            if (!isValidPassword)
             {
-                throw new UnauthorizedAccessException("Invalid Email or Password.");
+                return Result<LoginResponse>.Failure("Invalid Email or Password.");
             }
 
             // ========================================
@@ -56,14 +57,14 @@ namespace ProManage360.Application.Features.Auth.Command.Login
 
             if (tenant == null || !tenant.IsActive)
             {
-                throw new ForbiddenAccessException("Your organization account is inactive. Please contact support.");
+                return Result<LoginResponse>.Failure("Your organization account is inactive. Please contact support.");
             }
 
             // Check subscription status
             if (tenant.SubscriptionStatus == Domain.Enums.SubscriptionStatus.Suspended ||
                 tenant.SubscriptionStatus == Domain.Enums.SubscriptionStatus.Cancelled)
             {
-                throw new ForbiddenAccessException($"Your subscription is {tenant.SubscriptionStatus}. Please contact your administrator.");
+                return Result<LoginResponse>.Failure($"Your subscription is {tenant.SubscriptionStatus}. Please contact your administrator.");
             }
 
             // ========================================
@@ -72,7 +73,7 @@ namespace ProManage360.Application.Features.Auth.Command.Login
             var userRoles = await _context.UserRoles
                 .AsNoTracking()
                 .Where(ur => ur.UserId == user.UserId)
-                .Join(_context.Roles,
+                .Join(_context.Roles.IgnoreQueryFilters(),
                     ur => ur.RoleId,
                     r => r.RoleId,
                     (ur, r) => r.RoleName)
@@ -128,7 +129,7 @@ namespace ProManage360.Application.Features.Auth.Command.Login
             // ========================================
             // STEP 8: Build Response
             // ========================================
-            return new LoginResponse
+            var response = new LoginResponse
             {
                 UserId = user.UserId,
                 Email = user.Email,
@@ -141,6 +142,8 @@ namespace ProManage360.Application.Features.Auth.Command.Login
                 RefreshToken = refreshToken,
                 Roles = userRoles
             };
+
+            return Result<LoginResponse>.Success(response);
 
         }
     }
