@@ -40,7 +40,11 @@ public class AuthenticationController : ControllerBase
     public async Task<ActionResult<LoginResponse>> Login([FromBody] LoginCommand command)
     {
         var response = await _mediator.Send(command);
-        return Ok(response);
+        if (!response.Succeeded) 
+        {
+            return Unauthorized(new { error = response.Errors });
+        }
+        return Ok(response.Data);
     }
 
     /// <summary>

@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using ProManage360.Application.Common.Models;
 using ProManage360.Application.Features.Auth.DTOs;
 using System;
 using System.Collections.Generic;
@@ -8,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace ProManage360.Application.Features.Auth.Command.Login
 {
-    public class LoginCommand : IRequest<LoginResponse>
+    public class LoginCommand : IRequest<Result<LoginResponse>>
     {
         /// <summary>
         /// Command to authenticate user and generate JWT tokens
