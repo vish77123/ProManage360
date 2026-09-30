@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using ProManage360.Application.Common.Exceptions;
 using ProManage360.Application.Common.Interfaces;
 using ProManage360.Application.Common.Interfaces.Service;
@@ -16,16 +17,26 @@ namespace ProManage360.Application.Features.Auth.Command.Login
         private readonly IPasswordHasher _passwordHasher;
         private readonly IJwtTokenService _jwtTokenService;
         private readonly IDateTime _dateTime;
-        public LoginCommandHandler(IApplicationDbContext context, IPasswordHasher passwordHasher, IJwtTokenService jwtTokenService, IDateTime dateTime) 
+        private readonly ILogger<LoginCommandHandler> _logger;
+
+        public LoginCommandHandler(
+            IApplicationDbContext context,
+            IPasswordHasher passwordHasher,
+            IJwtTokenService jwtTokenService,
+            IDateTime dateTime,
+            ILogger<LoginCommandHandler> logger)
         {
             _context = context;
             _passwordHasher = passwordHasher;
             _jwtTokenService = jwtTokenService;
             _dateTime = dateTime;
+            _logger = logger;
         }
 
         public async Task<Result<LoginResponse>> Handle(LoginCommand request, CancellationToken cancellationToken)
         {
+            _logger.LogInformation("Login attempt for email: {Email}", request.Email);
+
             // ========================================
             // STEP 1: Find User by Email
             // ========================================
@@ -36,6 +47,7 @@ namespace ProManage360.Application.Features.Auth.Command.Login
 
             if (user == null)
             {
+                _logger.LogWarning("Login failed — no active user found for email: {Email}", request.Email);
                 return Result<LoginResponse>.Failure("Invalid Email or Password.");
             }
 
@@ -45,6 +57,7 @@ namespace ProManage360.Application.Features.Auth.Command.Login
             var isValidPassword = _passwordHasher.VerifyPassword(request.Password, user.PasswordHash);
             if (!isValidPassword)
             {
+                _logger.LogWarning("Login failed — invalid password for userId: {UserId}", user.UserId);
                 return Result<LoginResponse>.Failure("Invalid Email or Password.");
             }
 
@@ -57,6 +70,7 @@ namespace ProManage360.Application.Features.Auth.Command.Login
 
             if (tenant == null || !tenant.IsActive)
             {
+                _logger.LogWarning("Login failed — tenant inactive or missing for userId: {UserId}, tenantId: {TenantId}", user.UserId, user.TenantId);
                 return Result<LoginResponse>.Failure("Your organization account is inactive. Please contact support.");
             }
 
@@ -64,6 +78,7 @@ namespace ProManage360.Application.Features.Auth.Command.Login
             if (tenant.SubscriptionStatus == Domain.Enums.SubscriptionStatus.Suspended ||
                 tenant.SubscriptionStatus == Domain.Enums.SubscriptionStatus.Cancelled)
             {
+                _logger.LogWarning("Login blocked — subscription {Status} for tenantId: {TenantId}", tenant.SubscriptionStatus, tenant.TenantId);
                 return Result<LoginResponse>.Failure($"Your subscription is {tenant.SubscriptionStatus}. Please contact your administrator.");
             }
 
@@ -126,6 +141,9 @@ namespace ProManage360.Application.Features.Auth.Command.Login
 
             await _context.SaveChangesAsync(cancellationToken);
 
+            _logger.LogInformation("Login successful for userId: {UserId}, tenantId: {TenantId}, roles: [{Roles}]",
+                user.UserId, tenant.TenantId, string.Join(", ", userRoles));
+
             // ========================================
             // STEP 8: Build Response
             // ========================================
@@ -144,7 +162,6 @@ namespace ProManage360.Application.Features.Auth.Command.Login
             };
 
             return Result<LoginResponse>.Success(response);
-
         }
     }
 }
